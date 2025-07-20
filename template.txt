@@ -1,0 +1,20 @@
+ecomme-diajango/
+│
+├── ecomme-diajango/         ← Thư mục gốc Django (settings.py)
+│   ├── __init__.py
+│   ├── urls.py              ← (Bạn vừa gửi)
+│   ├── settings.py          ← Cấu hình chính
+│   └── ...
+│
+├── ecom/                    ← App chính
+│   ├── models.py            ← Các model: Product, Order, Customer, Feedback...
+│   ├── views.py             ← Logic xử lý request
+│   ├── forms.py             ← Các Form: đăng ký, login, thêm sản phẩm...
+│   ├── templates/ecom/      ← Giao diện HTML
+│   ├── static/              ← CSS, JS, ảnh tĩnh
+│   └── ...
+│
+├── media/                   ← Ảnh được upload (product_image)
+│
+├── db.sqlite3               ← File database SQLite
+├── manage.py

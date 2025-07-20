@@ -1,0 +1,346 @@
+{% extends 'ecom/customer_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chat-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+    }
+    
+    .message {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        max-width: 80%;
+    }
+    
+    .user-message {
+        background-color: #DCF8C6;
+        margin-left: auto;
+        text-align: right;
+    }
+    
+    .bot-message {
+        background-color: #E5E5EA;
+        margin-right: auto;
+    }
+    
+    .chat-input-container {
+        display: flex;
+    }
+    
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+    }
+    
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background-color: #888;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+        animation: typing 1s infinite;
+    }
+    
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+    
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+    
+    @keyframes typing {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+    
+    .chat-title-container {
+        background: linear-gradient(135deg, #4CAF50, #2196F3);
+        color: white;
+        padding: 20px;
+        border-radius: 10px 10px 0 0;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .chat-title-container h2 {
+        margin: 0;
+    }
+    
+    .chat-title-container p {
+        margin: 10px 0 0;
+        opacity: 0.8;
+    }
+    
+    .recommendations-banner {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 10px 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+    }
+    
+    .quick-question {
+        display: inline-block;
+        margin: 5px;
+        padding: 8px 15px;
+        background-color: #f0f0f0;
+        border-radius: 20px;
+        color: #333;
+        text-decoration: none;
+        font-size: 0.9em;
+        transition: background-color 0.3s;
+    }
+    
+    .quick-question:hover {
+        background-color: #e0e0e0;
+        text-decoration: none;
+    }
+    
+    .chat-input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px 0 0 8px;
+    }
+    
+    .chat-submit {
+        padding: 10px 15px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 0 8px 8px 0;
+        cursor: pointer;
+    }
+    
+    .chat-submit:hover {
+        background-color: #45a049;
+    }
+    
+    .message-time {
+        font-size: 0.7em;
+        color: #888;
+        margin-top: 5px;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="chat-title-container">
+        <h2><i class="fa fa-robot"></i> AI Shopping Assistant</h2>
+        <p>Ask me anything about products, orders, shipping, or get personalized recommendations!</p>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="chat-container">
+                
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Initial welcome message -->
+                    <div class="message bot-message">
+                        <div>Hello! I'm your AI shopping assistant. How can I help you today?</div>
+                        <div class="message-time">Just now</div>
+                    </div>
+                    
+                    <!-- Chat history will be displayed here -->
+                    {% for chat in chat_history %}
+                    <div class="message user-message">
+                        <div>{{ chat.message }}</div>
+                        <div class="message-time">{{ chat.timestamp|date:"H:i" }}</div>
+                    </div>
+                    <div class="message bot-message">
+                        <div>{{ chat.response }}</div>
+                        <div class="message-time">{{ chat.timestamp|date:"H:i" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <form method="post" id="chatForm">
+                    {% csrf_token %}
+                    <div class="chat-input-container">
+                        {{ chat_form.message }}
+                        <button type="submit" class="chat-submit">Send</button>
+                    </div>
+                </form>
+                
+                <div class="recommendations-banner mt-3">
+                    <i class="fa fa-lightbulb"></i> Try asking for product recommendations based on your interests!
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Frequently Asked Questions</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>About Orders</h5>
+                    <a href="#" class="quick-question">How do I track my order?</a>
+                    <a href="#" class="quick-question">What's your return policy?</a>
+                    <a href="#" class="quick-question">How long does shipping take?</a>
+                </div>
+                <div class="col-md-6">
+                    <h5>About Products</h5>
+                    <a href="#" class="quick-question">Can you recommend products for me?</a>
+                    <a href="#" class="quick-question">Do you have any current promotions?</a>
+                    <a href="#" class="quick-question">Tell me about your best sellers</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mt-4 mb-5">
+        <div class="card-header">
+            <h4>AI-Powered Features</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fa fa-comments"></i> AI Chatbot</h5>
+                    <p>Our AI assistant can help you with product information, order tracking, and general inquiries. It learns from your interactions to provide better responses over time.</p>
+                </div>
+                <div class="col-md-6">
+                    <h5><i class="fa fa-thumbs-up"></i> Personalized Recommendations</h5>
+                    <p>Based on your shopping history and preferences, our AI can suggest products you might like.</p>
+                    <a href="{% url 'ai-recommendations' %}" class="btn btn-outline-success btn-sm">View Recommendations</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatForm = document.getElementById('chatForm');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.querySelector('.chat-input');
+        
+        // Scroll to bottom of chat messages
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Handle form submission
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, true);
+            
+            // Clear input
+            chatInput.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Send message to server
+            fetch('{% url "ai-chat-api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Remove typing indicator
+                removeTypingIndicator();
+                
+                // Add bot response to chat
+                addMessage(data.response, false);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                removeTypingIndicator();
+                addMessage("Sorry, there was an error processing your request. Please try again.", false);
+            });
+        });
+        
+        // Handle quick questions
+        document.querySelectorAll('.quick-question').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                chatInput.value = this.textContent;
+                chatForm.dispatchEvent(new Event('submit'));
+            });
+        });
+        
+        // Function to add message to chat
+        function addMessage(message, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'message user-message' : 'message bot-message';
+            
+            const messageContent = document.createElement('div');
+            messageContent.textContent = message;
+            messageDiv.appendChild(messageContent);
+            
+            const messageTime = document.createElement('div');
+            messageTime.className = 'message-time';
+            messageTime.textContent = 'Just now';
+            messageDiv.appendChild(messageTime);
+            
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Function to show typing indicator
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('span');
+                typingDiv.appendChild(dot);
+            }
+            
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Function to remove typing indicator
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+    });
+</script>
+
+{% endblock content %}

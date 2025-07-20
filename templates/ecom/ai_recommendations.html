@@ -1,0 +1,81 @@
+{% extends 'ecom/customer_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .recommendation-title {
+        margin-bottom: 30px;
+    }
+    
+    .recommendation-card {
+        transition: transform 0.3s;
+        margin-bottom: 20px;
+    }
+    
+    .recommendation-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .recommendation-tag {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #ff6b6b;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="text-center recommendation-title">AI-Powered Recommendations for You</h1>
+            <p class="text-center mb-5">Based on your preferences and shopping history, we think you might like these items.</p>
+        </div>
+    </div>
+    
+    {% if recommended_products %}
+    <div class="row">
+        {% for product in recommended_products %}
+        <div class="col-md-4">
+            <div class="card recommendation-card">
+                <span class="recommendation-tag">AI Recommended</span>
+                <img src="{% if product.product_image %}{{ product.product_image.url }}{% else %}{% static 'images/default-product.jpg' %}{% endif %}" class="card-img-top" alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description }}</p>
+                    <p class="card-text"><strong>Price: ${{ product.price }}</strong></p>
+                    <a href="{% url 'add-to-cart' product.id %}" class="btn btn-primary">Add to Cart</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-info text-center" role="alert">
+                <h4>No recommendations available yet!</h4>
+                <p>As you browse and purchase products, our AI system will learn your preferences and provide personalized recommendations.</p>
+                <a href="{% url 'customer-home' %}" class="btn btn-primary mt-3">Start Shopping</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row mt-5">
+        <div class="col-md-12 text-center">
+            <div class="card">
+                <div class="card-body">
+                    <h4>How Recommendations Work</h4>
+                    <p>Our AI system analyzes your shopping history, preferences, and browsing patterns to suggest products that match your interests.</p>
+                    <p>The more you shop with us, the better our recommendations will get!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

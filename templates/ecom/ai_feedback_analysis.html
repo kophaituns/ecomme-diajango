@@ -1,0 +1,154 @@
+{% extends 'ecom/admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .analysis-card {
+        margin-bottom: 20px;
+    }
+    
+    .sentiment-positive {
+        color: green;
+        font-weight: bold;
+    }
+    
+    .sentiment-negative {
+        color: red;
+        font-weight: bold;
+    }
+    
+    .sentiment-neutral {
+        color: #007bff;
+        font-weight: bold;
+    }
+    
+    .key-point {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .suggested-response {
+        background-color: #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="text-center mb-4">AI Feedback Analysis</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card analysis-card">
+                <div class="card-header">
+                    <h4>Original Feedback</h4>
+                </div>
+                <div class="card-body">
+                    <h5>{{ feedback.name }}</h5>
+                    <p class="text-muted">{{ feedback.date }}</p>
+                    <div class="feedback-text">
+                        <p>{{ feedback.feedback }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card analysis-card">
+                <div class="card-header">
+                    <h4>AI Analysis</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Sentiment Analysis</h5>
+                    <p>
+                        {% if "positive" in analysis %}
+                            <span class="sentiment-positive">Positive Feedback</span>
+                        {% elif "negative" in analysis %}
+                            <span class="sentiment-negative">Negative Feedback</span>
+                        {% else %}
+                            <span class="sentiment-neutral">Neutral Feedback</span>
+                        {% endif %}
+                    </p>
+                    
+                    <h5 class="mt-4">Key Points</h5>
+                    <div id="keyPointsContainer"></div>
+                    
+                    <h5 class="mt-4">Suggested Response</h5>
+                    <div class="suggested-response" id="suggestedResponse"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="text-center">
+                <a href="{% url 'view-feedback' %}" class="btn btn-primary">Back to Feedback List</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Parse the analysis JSON
+        try {
+            // The analysis is passed as a string, so we need to extract the JSON
+            const analysisText = `{{ analysis|safe }}`;
+            const analysisJson = extractJsonFromText(analysisText);
+            
+            // Display key points
+            if (analysisJson.key_points && Array.isArray(analysisJson.key_points)) {
+                const keyPointsContainer = document.getElementById('keyPointsContainer');
+                analysisJson.key_points.forEach(point => {
+                    const keyPoint = document.createElement('div');
+                    keyPoint.className = 'key-point';
+                    keyPoint.textContent = point;
+                    keyPointsContainer.appendChild(keyPoint);
+                });
+            }
+            
+            // Display suggested response
+            if (analysisJson.suggested_response) {
+                document.getElementById('suggestedResponse').textContent = analysisJson.suggested_response;
+            }
+        } catch (e) {
+            console.error('Error parsing analysis:', e);
+            document.getElementById('keyPointsContainer').innerHTML = '<div class="alert alert-warning">Error parsing analysis</div>';
+            document.getElementById('suggestedResponse').textContent = 'Unable to generate suggested response';
+        }
+    });
+    
+    // Helper function to extract JSON from text that might contain additional text before/after JSON
+    function extractJsonFromText(text) {
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            // Try to find JSON-like structure in the text
+            const match = text.match(/\{[\s\S]*\}/);
+            if (match) {
+                try {
+                    return JSON.parse(match[0]);
+                } catch (e2) {
+                    console.error('Failed to parse extracted JSON:', e2);
+                }
+            }
+            
+            // Fallback object
+            return {
+                sentiment: "neutral",
+                key_points: ["Unable to extract key points from analysis"],
+                suggested_response: "Thank you for your feedback."
+            };
+        }
+    }
+</script>
+
+{% endblock content %}
